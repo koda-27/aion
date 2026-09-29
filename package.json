@@ -1,0 +1,20 @@
+{
+  "name": "aion",
+  "version": "0.2.1",
+  "private": true,
+  "type": "module",
+  "description": "A local roguelike with an Oracle developing it as you play.",
+  "license": "MIT",
+  "scripts": {
+    "start": "node server/main.js",
+    "dev": "node server/main.js",
+    "test": "node --test tests/*.test.js",
+    "check": "node tools/check-release.js game",
+    "oracle": "node tools/aion.js",
+    "game:init": "node tools/init-game.js",
+    "backup": "node tools/backup.js",
+    "export": "node tools/export.js"
+  },
+  "dependencies": { "rot-js": "2.2.1" },
+  "engines": { "node": ">=22" }
+}

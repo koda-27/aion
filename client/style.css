@@ -1,0 +1,36 @@
+:root { color-scheme:dark; font:15px/1.45 ui-monospace, "Cascadia Code", "DejaVu Sans Mono", monospace; color:#d4ccb7; background:#111115; }
+* { box-sizing:border-box; }
+body { margin:0; height:100dvh; overflow:hidden; }
+#game { width:100%; height:100%; max-width:1500px; margin:auto; display:flex; flex-direction:column; padding:12px 20px; background:#111115; }
+header { display:flex; align-items:center; justify-content:space-between; gap:10px; border-bottom:1px solid #35333a; padding:3px 0 7px; }
+#status { color:#e6d9b8; white-space:pre-wrap; }
+.controls { display:flex; flex-wrap:wrap; gap:5px; }
+button { font:inherit; color:#c2bcae; background:#1a191e; border:1px solid #4a4550; padding:3px 10px; cursor:pointer; }
+button:hover, button:focus-visible { color:#fff0c8; border-color:#b8a481; }
+#pack { color:#9e9a96; font-size:13px; padding:7px 0; white-space:pre-wrap; }
+#viewport { flex:1; min-height:100px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:#0a0b0f; border:1px solid #2d2b32; }
+canvas { image-rendering:pixelated; outline:none; display:block; touch-action:none; }
+#hint { color:#827e83; font-size:12px; padding:7px 0 4px; }
+#messages { height:132px; flex-shrink:0; overflow-y:auto; padding:4px 0; border-top:1px solid #35333a; scrollbar-color:#504650 #17151b; }
+#messages p { margin:1px 0; }
+#messages .oracle { color:#c5a9d2; }
+#messages .danger { color:#de9985; }
+#messages .inspection { color:#aebcae; }
+dialog { max-width:min(640px,90vw); max-height:85vh; overflow:auto; background:#19171f; color:#d4ccb7; border:1px solid #8a7987; padding:24px; }
+dialog::backdrop { background:#050509b8; }
+dialog h1 { margin:0 0 16px; font-size:20px; font-weight:normal; color:#dec7a3; }
+#panel-body { white-space:pre-wrap; margin-bottom:22px; }
+.choices { display:flex; flex-direction:column; gap:8px; margin-top:16px; }
+.choices button { text-align:left; padding:8px 10px; }
+.petition { display:flex; flex-direction:column; gap:10px; margin-top:16px; white-space:normal; }
+.petition textarea { width:100%; min-width:min(420px,65vw); resize:vertical; padding:10px; font:inherit; color:#e4dac3; background:#100f15; border:1px solid #8a7987; }
+.petition textarea:focus { outline:1px solid #d4b78d; }
+.petition small { color:#a09aa8; }
+.petition button:disabled { opacity:.45; cursor:default; }
+.commit-list { padding-left:24px; }
+.commit-list li { margin:12px 0; }
+.commit-list strong, .commit-list small { display:block; }
+.commit-list small { color:#a09aa8; margin-top:3px; }
+#history-body { margin-bottom:20px; overflow-wrap:anywhere; }
+button:disabled { opacity:.45; cursor:default; }
+@media(max-width:700px) { :root { font-size:12px; } #game { padding:8px; } header { flex-wrap:wrap; } #pack { font-size:11px; } button { padding:3px 6px; } #messages { height:150px; } }

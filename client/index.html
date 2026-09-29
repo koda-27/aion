@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111115">
+  <title>Aion — the private descent</title>
+  <link rel="stylesheet" href="/client/style.css">
+  <script src="/vendor/rot.js" defer></script>
+  <script type="module" src="/client/main.js"></script>
+</head>
+<body>
+  <main id="game" aria-label="Aion dungeon">
+    <header><span id="status">The Threshold waits.</span><span class="controls"><button id="history">History</button><button id="help" aria-label="Controls">?</button><button id="mute">Sound</button><button id="quit">Quit</button></span></header>
+    <div id="pack"></div>
+    <section id="viewport"><canvas id="dungeon" aria-label="Dungeon map. Press question mark for controls." tabindex="0"></canvas></section>
+    <div id="hint">Arrows / WASD move · X examine · ? controls</div>
+    <section id="messages" role="log" aria-label="Messages" aria-live="polite"></section>
+    <dialog id="panel"><h1 id="panel-title"></h1><div id="panel-body"></div><button id="panel-close">Return</button></dialog>
+    <dialog id="history-panel" aria-labelledby="history-title"><h1 id="history-title">Game history</h1><div id="history-body"></div><button id="history-close">Return to game</button></dialog>
+  </main>
+</body>
+</html>
