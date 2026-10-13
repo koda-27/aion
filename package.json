@@ -3,7 +3,7 @@
   "version": "0.2.1",
   "private": true,
   "type": "module",
-  "description": "A local roguelike with an Oracle developing it as you play.",
+  "description": "A local ambient exploration game that ships empty; an Oracle writes it as you play.",
   "license": "MIT",
   "scripts": {
     "start": "node server/main.js",

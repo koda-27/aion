@@ -15,8 +15,8 @@ test('migration rejection leaves the actual run untouched',()=>{
   const state=game.create({ROT,seed:19,...api}),before=structuredClone(state);
   assert.throws(()=>migrateWorld({...game,migrate(draft){draft.player.hp=0;throw Error('broken migration');}},state));
   assert.deepEqual(state,before);
-  const next=migrateWorld({...game,migrate(draft){draft.player.oil+=7;return draft;}},state);
-  assert.equal(next.player.oil,state.player.oil+7);
+  const next=migrateWorld({...game,migrate(draft){draft.player.hp+=7;return draft;}},state);
+  assert.equal(next.player.hp,state.player.hp+7);
   assert.deepEqual(state,before);
 });
 
@@ -40,7 +40,7 @@ test('publication, save ordering, observation, quit and restart',async()=>{
     };
     assert.equal((await call('status')).body.phase,'waiting');
     assert.equal((await call('publish',{})).status,409);
-    assert.equal((await fetch(`${url}/PLAY.md`)).status,404);
+    assert.equal((await fetch(`${url}/docs/LORE.md`)).status,404);
     assert.equal((await call('history')).status,409);
     assert.equal((await call('connect',{clientId:'test'},{Origin:'https://elsewhere.invalid'})).status,403);
     const connection=(await call('connect',{clientId:'test'})).body;lease=connection.lease;
@@ -49,12 +49,12 @@ test('publication, save ordering, observation, quit and restart',async()=>{
     assert.equal((await call('save',{state,release:connection.release.id,sequence:1})).status,200);
     const current=(await call('status')).body;
     const watching=call(`watch?after=${current.revision}`);
-    state.player.silver=11;state.turn=3;
+    state.player.hp=11;state.turn=3;
     await call('save',{state,release:connection.release.id,sequence:3});
-    assert.equal((await watching).body.game.player.silver,11);
-    state.player.silver=0;
+    assert.equal((await watching).body.game.player.hp,11);
+    state.player.hp=0;
     await call('save',{state,release:connection.release.id,sequence:2});
-    assert.equal((await call('state')).body.save.state.player.silver,11);
+    assert.equal((await call('state')).body.save.state.player.hp,11);
     rejectCandidate=true;
     assert.equal((await call('publish',{})).status,400);
     assert.equal((await call('status')).body.publishedRelease,connection.release.id);
@@ -70,10 +70,10 @@ test('publication, save ordering, observation, quit and restart',async()=>{
     assert.equal((await call('quit',{})).status,200);
     assert.equal((await call('status')).body.phase,'quit');
     assert.equal((await call('publish',{})).status,409);
-    assert.equal(JSON.parse(await readFile(join(dataDir,'save.json'),'utf8')).state.player.silver,11);
+    assert.equal(JSON.parse(await readFile(join(dataDir,'save.json'),'utf8')).state.player.hp,11);
     await bridge.close();
     bridge=await startBridge({root,port:0,dataDir,check});
-    assert.equal(bridge.summary().game.player.silver,11);
+    assert.equal(bridge.summary().game.player.hp,11);
     assert.equal(bridge.summary().publishedRelease,published.body.id);
     assert.equal(bridge.summary().phase,'waiting');
   } finally {await bridge?.close();await rm(dataDir,{recursive:true,force:true});}

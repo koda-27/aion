@@ -19,14 +19,10 @@ canvas { image-rendering:pixelated; outline:none; display:block; touch-action:no
 dialog { max-width:min(640px,90vw); max-height:85vh; overflow:auto; background:#19171f; color:#d4ccb7; border:1px solid #8a7987; padding:24px; }
 dialog::backdrop { background:#050509b8; }
 dialog h1 { margin:0 0 16px; font-size:20px; font-weight:normal; color:#dec7a3; }
-#panel-body { white-space:pre-wrap; margin-bottom:22px; }
+#panel-body { white-space:pre-wrap; margin-bottom:22px; line-height:1.6; }
+#panel-close[hidden] { display:none; }
 .choices { display:flex; flex-direction:column; gap:8px; margin-top:16px; }
 .choices button { text-align:left; padding:8px 10px; }
-.petition { display:flex; flex-direction:column; gap:10px; margin-top:16px; white-space:normal; }
-.petition textarea { width:100%; min-width:min(420px,65vw); resize:vertical; padding:10px; font:inherit; color:#e4dac3; background:#100f15; border:1px solid #8a7987; }
-.petition textarea:focus { outline:1px solid #d4b78d; }
-.petition small { color:#a09aa8; }
-.petition button:disabled { opacity:.45; cursor:default; }
 .commit-list { padding-left:24px; }
 .commit-list li { margin:12px 0; }
 .commit-list strong, .commit-list small { display:block; }

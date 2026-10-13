@@ -1,29 +1,29 @@
-# An Aion dungeon
+# An Aion game
 
-The evolving game for **Aion**, a local browser roguelike developed live by the
-player's terminal coding agent. This repository contains its rules, creatures,
-world generation, text-authored sprites and Web Audio recipes. Each development
-is a Git commit; browse the history to see how this dungeon grew.
+The game modules for **Aion**, a local ambient game of exploration written
+live by the player's terminal coding agent. A fresh copy holds only the engine:
+no openings, places, sprites or sounds. Whatever is under `written/` was
+written by an Oracle for one player, and each piece is a Git commit.
 
 ## Play this version
 
 Use an Aion host (Node.js 22+, game ABI 1). With its server stopped, put this
-repository in the host's `game/` directory, run `npm ci` from the host directory,
-then `npm start`. A **fresh host** starts this game's current source. An existing
-host resumes its saved published version; use the Oracle's normal publication
-flow to bring new source into that descent.
+repository in the host's `game/` directory, run `npm ci` from the host
+directory, then ask your coding agent to follow the host's `PLAY.md`. A fresh
+host starts this game's current source; an existing host resumes its saved
+published version.
 
 The host supplies Canvas rendering, input, audio playback, rot.js, local saves
-and hot-swapping. These game modules are not a standalone website. To develop
-while playing, ask your own coding agent to follow the host's `PLAY.md`.
+and hot-swapping. These modules are not a standalone website.
 
-The shared repository contains no player saves or private Oracle notes. GitHub
-sharing publishes committed code and its history, not a recording of a run.
+The repository contains no player saves or private Oracle notes.
 
 ## Files
 
-- `index.js`: creation, actions, migrations, descriptions and floor generation.
-- `art.js`: square text sprite masks and synthesized sound recipes.
-- Additional relative `.js` modules may be introduced as the game evolves.
+- `index.js`: the engine: verbs, stages, generation, presentation.
+- `kit.js`: the helpers handed to written places and stories.
+- `thread.js`: the register of what has been written, by Seeker number.
+- `art.js`: plain fallback sprites and sounds.
+- `written/`: openings, places and passages, once an Oracle has written any.
 
 MIT licensed; see `LICENSE`.

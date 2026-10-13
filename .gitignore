@@ -2,3 +2,4 @@ node_modules/
 .aion/
 *.log
 dist/
+game/written/

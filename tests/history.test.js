@@ -13,7 +13,7 @@ test('clean export has a single game seed commit and excludes private state, dep
   await exportSource(root,destination);await initGame(destination);
   assert.equal(await run('git',['rev-list','--count','HEAD'],join(destination,'game')),'1');
   assert.equal(await run('git',['tag','--list'],join(destination,'game')),'aion-seed');
-  for(const path of ['.aion','node_modules','.git','AGENTS.md','docs']) await assert.rejects(access(join(destination,path)));
+  for(const path of ['.aion','node_modules','.git','AGENTS.md']) await assert.rejects(access(join(destination,path)));
   await access(join(destination,'PLAY.md'));
   const service=createHistory(destination),history=await service.history();
   assert.equal(history.commits[0].subject,'Seed the dungeon');assert.equal(history.dirty,false);

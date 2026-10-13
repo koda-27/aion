@@ -77,11 +77,11 @@ export function createStorage(dataDir,{now=Date.now}={}) {
   }
   async function record(state) {
     // Hash keys before using them as paths; player and live-module text is data.
-    const witness=hash(String(state.runId ?? 'legacy'));
+    const seeker=hash(String(state.runId ?? 'legacy'));
     for(const petition of state.petitions ?? []) {
-      await archive(`${witness}/petitions/${hash(String(petition.id))}.json`,petition);
+      await archive(`${seeker}/petitions/${hash(String(petition.id))}.json`,petition);
     }
-    await archive(`${witness}/witness.json`,{
+    await archive(`${seeker}/seeker.json`,{
       runId:state.runId ?? 'legacy',turn:state.turn,depth:state.depth,
       player:state.player,history:state.history ?? [],updatedAt:new Date(now()).toISOString(),
     });

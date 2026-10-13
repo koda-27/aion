@@ -16,7 +16,7 @@ const saveQueue=createSaveQueue(async snapshot=>{
 });
 let visible=new Set(),target=null,look=null,inspection=null,tile=16;
 let stopped=false,ready=false,quitting=false,polling=false,lastRejected=null,releaseTimer,heartbeatTimer;
-let panelAction=null,unlockSession=null,choiceActions=[];
+let panelAction=null,unlockSession=null,choiceActions=[],promptShown=null;
 
 async function request(path,data) {
   const response=await fetch(`/api/${path}`,{
@@ -41,52 +41,34 @@ function save() {
   }).catch(error=>{saveError=error;console.error('Save failed',error);});
 }
 
-function openPanel(title,body,action=null,label='Return') {
-  choiceActions=[];
+function openPanel(title,body,action=null,label='Return',must=false) {
+  choiceActions=[];promptShown=null;
   $('panel-title').textContent=title;$('panel-body').textContent=body;
-  $('panel-close').textContent=label;panelAction=action;
+  $('panel-close').textContent=label;$('panel-close').hidden=must;panelAction=action;
   if(!$('panel').open) $('panel').showModal();
 }
-function closePanel() { $('panel').close();panelAction=null;choiceActions=[];canvas.focus(); }
+function closePanel() { $('panel').close();panelAction=null;choiceActions=[];promptShown=null;canvas.focus(); }
 $('panel-close').onclick=()=>{const action=panelAction;closePanel();action?.();};
-$('panel').addEventListener('cancel',()=>{
+$('panel').addEventListener('cancel',event=>{
+  // A telling must be answered; only an offered choice can be walked away from.
+  if(promptShown && state?.prompt?.must) {event.preventDefault();return;}
   panelAction=null;choiceActions=[];
-  if(state?.prompt) action({type:'cancel-prompt'});
+  if(promptShown && state?.prompt) {promptShown=null;action({type:'cancel-prompt'});}
 });
 
 function showChoices() {
   const prompt=state.prompt;
   if(!prompt) return;
-  if(prompt.kind==='shrine' && prompt.input==='text') {
-    const key=`${state.depth}:${prompt.x},${prompt.y}`;
-    // An incoming release must not erase or steal focus from an unsent petition.
-    if($('panel').open && $('petition-message')?.dataset.shrine===key) return;
-    openPanel(prompt.title,prompt.text,()=>action({type:'cancel-prompt'}),'Leave it unsaid');
-    const form=document.createElement('form');form.className='petition';
-    const label=document.createElement('label');label.htmlFor='petition-message';label.textContent='Thy petition';
-    const input=document.createElement('textarea');input.id='petition-message';
-    input.dataset.shrine=key;input.rows=5;input.maxLength=2000;input.required=true;
-    input.placeholder='Oracle, hear me…';
-    const hint=document.createElement('small');hint.textContent='Enter speaks · Shift+Enter adds a line · Escape leaves it unsaid';
-    const submit=document.createElement('button');submit.type='submit';submit.textContent='Speak';submit.disabled=true;
-    input.addEventListener('input',()=>{submit.disabled=!input.value.trim();});
-    form.addEventListener('submit',event=>{
-      event.preventDefault();
-      const text=input.value.trim();if(!text) return;
-      closePanel();action({type:'petition',text});
-    });
-    input.addEventListener('keydown',event=>{
-      if(event.key==='Enter' && !event.shiftKey && !event.isComposing) {
-        event.preventDefault();event.stopPropagation();form.requestSubmit();
-      }
-    });
-    form.append(label,input,hint,submit);$('panel-body').append(form);input.focus();return;
-  }
-  openPanel(prompt.title,prompt.text,()=>action({type:'cancel-prompt'}),'Leave it unsaid');
+  const shown=JSON.stringify(prompt);
+  // An incoming release must not redraw or steal focus from the same question.
+  if($('panel').open && promptShown===shown) return;
+  openPanel(prompt.title,prompt.text,()=>action({type:'cancel-prompt'}),'Walk away',!!prompt.must);
+  promptShown=shown;
   const list=document.createElement('div');list.className='choices';
+  const numbered=prompt.choices.length>1;
   choiceActions=prompt.choices.map((choice,index)=>{
-    const choose=()=>{closePanel();action({type:prompt.action ?? 'petition',id:choice.id});};
-    const button=document.createElement('button');button.textContent=`${index+1}. ${choice.text}`;
+    const choose=()=>{closePanel();action({type:prompt.action ?? 'choose',id:choice.id});};
+    const button=document.createElement('button');button.textContent=numbered?`${index+1}. ${choice.text}`:choice.text;
     button.onclick=choose;list.append(button);return choose;
   });
   $('panel-body').append(list);
@@ -94,9 +76,9 @@ function showChoices() {
 
 function help() {
   openPanel('The hand and the dark',
-    'Arrows / WASD — move; walk into a creature to strike\nY U B N — diagonal movement\nSpace / period — wait\n'+
+    'Arrows / WASD — move; walk into a thing to touch it\nY U B N — diagonal movement\nSpace / period — hold still\n'+
     Object.entries(mod?.bindings ?? {}).map(([key,action])=>`${key.toUpperCase()} — ${action.label}`).join('\n')+
-    '\nX — examine nearby tiles (directions; Escape leaves)\nClick — examine a visible nearby tile\nM — sound on/off\nEnter — fullscreen\nQ — save and quit\n\nActions spend turns; examining and reading do not.\nAmber figures are preparing a blow at the outlined tile.');
+    '\nX — examine nearby tiles (directions; Escape leaves)\nClick — examine a visible nearby tile\nM — sound on/off\nEnter — leave or return to fullscreen\nQ — save and quit\n\nActions spend turns; examining and choosing do not.\nNothing is taken unless thou takest it.');
 }
 
 function fov() {
@@ -145,10 +127,15 @@ function draw() {
     p.textContent=message.kind==='oracle'?`Oracle: ${message.text}`:message.text;messages.append(p);
   }
   if(nearEnd || inspection) messages.scrollTop=messages.scrollHeight;
+  // The bed of sound follows the place; asking for the same one again is free.
+  try {audio.ambient(stopped?null:mod.ambience?.(state) ?? null);} catch(error) {console.error(error);}
 }
 
 function examine(x,y) {
   if(!visible.has(`${x},${y}`) || Math.abs(x-state.player.x)+Math.abs(y-state.player.y)>2) return;
+  // Looking is noticed by the place, though it spends no turn.
+  if(state.phase==='floor' && !state.prompt) action({type:'regard',x,y});
+  if(state.prompt) return;
   look={x,y};inspection=mod.inspect(state,x,y);draw();
 }
 
@@ -170,19 +157,20 @@ function action(a) {
 }
 
 function death() {
-  openPanel('The witness is concluded.',
-    `Depth ${state.depth}. ${state.player.kills} creatures granted silence.\n\nAnother witness may enter. The Oracle remembers this descent.`,async()=>{
+  openPanel('The Seeker is concluded.',
+    'Another Seeker may enter. The Oracle remembers this one.',async()=>{
       await save();
       if(saveError) {death();return;}
-      const old=state;
-      const next=mod.create({ROT,seed:crypto.getRandomValues(new Uint32Array(1))[0],...api});
+      const old=state,seeker=(old.seeker ?? 1)+1;
+      const next=mod.create({ROT,seed:crypto.getRandomValues(new Uint32Array(1))[0],seeker,...api});
       next.runId=crypto.randomUUID();
-      next.history=[...(old.history ?? []),{depth:old.depth,turns:old.turn,kills:old.player.kills,silver:old.player.silver}].slice(-30);
+      next.history=[...(old.history ?? []),{seeker:old.seeker ?? 1,depth:old.depth,turns:old.turn,place:old.place ?? null}].slice(-30);
       next.eventSequence=old.eventSequence;
       next.events=[];
-      api.event(next,'new-witness',{previousDepth:old.depth});
+      api.event(next,'new-seeker',{previousDepth:old.depth,seeker});
       validateState(next);mod.validate(next);state=next;fov();draw();save();
-    },'Another witness');
+      if(state.prompt) showChoices();
+    },'Another Seeker');
 }
 
 async function quit() {
@@ -202,14 +190,14 @@ async function quit() {
 
 function confirmQuit() {
   if(!ready || stopped) return;
-  openPanel('Leave the Threshold?', 'The descent will be saved. The Oracle will fall silent.\nEscape returns to the dark.',quit,'Save and quit');
+  openPanel('Leave?', 'Thy place will be kept. The Oracle will fall silent.\nEscape returns.',quit,'Save and quit');
 }
 
 async function activate(manifest,initial=false) {
   const candidate=await import(manifest.url);
   validateModule(candidate);
   // Await ends before reading current state: actions during import are preserved.
-  const next=state ? migrateWorld(candidate,state) : candidate.create({ROT,seed:crypto.getRandomValues(new Uint32Array(1))[0],...api});
+  const next=state ? migrateWorld(candidate,state,{ROT}) : candidate.create({ROT,seed:crypto.getRandomValues(new Uint32Array(1))[0],...api});
   next.runId ??= crypto.randomUUID();
   validateState(next);candidate.validate(next);
   // Verify presentation before committing, not after corrupting the live registry.
@@ -229,7 +217,8 @@ async function activate(manifest,initial=false) {
   lastRejected=null;target=null;look=null;inspection=null;
   await save();
   await request('client-error',{error:null}).catch(error=>console.error(error));
-  if(!state.prompt && $('petition-message') && $('panel').open) closePanel();
+  // A question the new release answered or withdrew closes with it.
+  if(!state.prompt && promptShown && $('panel').open) closePanel();
   if(state.prompt) showChoices();
   if(!initial && next.messages.length && JSON.stringify(next.messages)!==JSON.stringify(previous.messages) && next.messages.at(-1).kind==='oracle') audio.play(mod.sounds.oracle);
 }
@@ -250,6 +239,7 @@ document.addEventListener('keydown',event=>{
   if($('history-panel').open) return;
   if(event.ctrlKey || event.metaKey || event.altKey) return;
   audio.unlock();
+  const filling=fill();
   const key=event.key.length===1?event.key.toLowerCase():event.key;
   if($('panel').open) {
     if(event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLInputElement) return;
@@ -257,7 +247,12 @@ document.addEventListener('keydown',event=>{
     if(choiceActions.length && /^[1-9]$/.test(key)) {
       event.preventDefault();choiceActions[Number(key)-1]?.();return;
     }
-    if(key==='Enter') {event.preventDefault();$('panel-close').click();}
+    if(key==='Enter') {
+      if(event.target.closest?.('.choices')) return;
+      event.preventDefault();
+      if(choiceActions.length===1) choiceActions[0]();
+      else if(!$('panel-close').hidden) $('panel-close').click();
+    }
     return;
   }
   if(!ready || stopped) return;
@@ -265,7 +260,7 @@ document.addEventListener('keydown',event=>{
   if(key==='?') {event.preventDefault();help();return;}
   if(key==='Escape') {target=null;look=null;inspection=null;draw();return;}
   if(key==='m') {toggleMute();return;}
-  if(key==='Enter') {event.preventDefault();(document.fullscreenElement?document.exitFullscreen():$('game').requestFullscreen()).catch(()=>{});return;}
+  if(key==='Enter') {event.preventDefault();if(!filling) fullscreen();return;}
   const dir=directions[key];
   if(look) {
     if(dir) {event.preventDefault();examine(look.x+dir[0],look.y+dir[1]);}return;
@@ -279,11 +274,21 @@ document.addEventListener('keydown',event=>{
   const binding=mod.bindings[key];
   if(binding) {event.preventDefault();if(binding.direction) {target=binding.type;draw();} else action({type:binding.type});}
 });
+// A browser grants fullscreen only to a gesture, so the first key or click asks
+// for it. Once given it is never asked again: leaving is the Seeker's choice.
+let filled=false;
+function fullscreen() {
+  if(document.fullscreenElement) return document.exitFullscreen().catch(()=>{});
+  // Escape belongs to the game; where the browser allows, holding it leaves.
+  return $('game').requestFullscreen().then(()=>{filled=true;navigator.keyboard?.lock?.(['Escape']).catch(()=>{});}).catch(()=>{});
+}
+function fill() { if(filled || document.fullscreenElement) return false;fullscreen();return true; }
+document.addEventListener('click',fill);
 canvas.addEventListener('click',event=>{
   audio.unlock();if(!ready||stopped) return;
   const box=canvas.getBoundingClientRect();examine(Math.floor((event.clientX-box.left)/tile),Math.floor((event.clientY-box.top)/tile));
 });
-function toggleMute() {audio.muted=!audio.muted;$('mute').textContent=audio.muted?'Muted':'Sound';}
+function toggleMute() {audio.setMuted(!audio.muted);$('mute').textContent=audio.muted?'Muted':'Sound';}
 $('help').onclick=help;$('quit').onclick=confirmQuit;$('mute').onclick=()=>{audio.unlock();toggleMute();};
 setupHistory(request);
 new ResizeObserver(()=>draw()).observe($('viewport'));
@@ -317,7 +322,7 @@ async function boot() {
 // from both issuing turns. The server lease also rejects unrelated clients.
 if(navigator.locks) {
   navigator.locks.request('aion-player',{ifAvailable:true},async lock=>{
-    if(!lock) {openPanel('Another witness is present.','This descent is already open in another tab.');return;}
+    if(!lock) {openPanel('Another Seeker is present.','This descent is already open in another tab.');return;}
     const held=new Promise(resolve=>{unlockSession=resolve;});await boot();await held;
   });
 } else boot();

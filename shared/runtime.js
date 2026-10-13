@@ -43,7 +43,7 @@ export function validateState(state) {
     throw new Error('Invalid persistent state');
   }
   if(state.petitions!==undefined && !Array.isArray(state.petitions)) throw new Error('Invalid petition history');
-  if(state.runId!==undefined && (typeof state.runId!=='string'||!state.runId||state.runId.length>100)) throw new Error('Invalid witness identity');
+  if(state.runId!==undefined && (typeof state.runId!=='string'||!state.runId||state.runId.length>100)) throw new Error('Invalid Seeker identity');
   const encoded = JSON.stringify(state);
   if (encoded.length > 4_000_000) throw new Error('World exceeds save limit');
   const visit = (value) => {
@@ -71,10 +71,10 @@ export function validateModule(mod) {
 
 // Transactions are synchronous: input cannot interleave with activation/migration.
 // A rejected candidate never receives the actual live state object.
-export function migrateWorld(mod, current) {
+export function migrateWorld(mod, current, extra = {}) {
   validateModule(mod);
   const draft = structuredClone(current);
-  const migrated = mod.migrate(draft, api);
+  const migrated = mod.migrate(draft, { ...api, ...extra });
   validateState(migrated);
   mod.validate(migrated);
   if (migrated.turn !== current.turn) throw new Error('Migration must not spend player turns');

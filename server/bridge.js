@@ -73,10 +73,13 @@ export async function startBridge({ root, port = 4174, dataDir = join(root,'.aio
       heartbeatAgeSeconds:connected?Math.floor((now()-lastHeartbeat)/1000):null,
       game:saved ? {
         turn:saved.state.turn, depth:saved.state.depth, player:saved.state.player,
+        seeker:saved.state.seeker ?? 1, phase:saved.state.phase ?? null, stage:saved.state.stage ?? null,
+        place:saved.state.place ?? null, prompt:saved.state.prompt?.q ?? null,
+        pack:(saved.state.pack ?? []).map(t=>t.kind), marks:saved.state.marks ?? {},
+        trace:saved.state.trace ?? null, traces:(saved.state.traces ?? []).slice(-3),
+        choices:(saved.state.choices ?? []).slice(-12),
         recentEvents:saved.state.events.slice(-20), recentMessages:saved.state.messages.slice(-8),
-        developments:Object.fromEntries(Object.entries(saved.state.developments ?? {}).slice(-32)),
-        developmentCount:Object.keys(saved.state.developments ?? {}).length,
-        runId:saved.state.runId ?? 'legacy', petitions:saved.state.petitions?.slice(-8) ?? [],
+        runId:saved.state.runId ?? 'legacy',
       } : null,
     };
   }

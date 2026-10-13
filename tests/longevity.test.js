@@ -18,7 +18,7 @@ async function release(path,id) {
   await mkdir(join(path,'releases',id),{recursive:true});
   await writeFile(join(path,'releases',id,'index.js'),'export const abi=1;');
 }
-const state=()=>({...game.create({ROT,seed:19,...api}),runId:'witness-one'});
+const state=()=>({...game.create({ROT,seed:19,...api}),runId:'seeker-one'});
 
 test('90 days of saves retain checkpoints and archived petitions without bloating the hot world',async t=>{
   const path=await fixture(t);
@@ -42,8 +42,8 @@ test('90 days of saves retain checkpoints and archived petitions without bloatin
     if(day%10===0) {store=createStorage(path,{now});assert.equal((await store.load()).state.turn,day);}
   }
   assert.equal((await readdir(join(path,'checkpoints'))).length,14);
-  const witnesses=await readdir(join(path,'chronicle'));
-  const petitions=await readdir(join(path,'chronicle',witnesses[0],'petitions'));
+  const chronicles=await readdir(join(path,'chronicle'));
+  const petitions=await readdir(join(path,'chronicle',chronicles[0],'petitions'));
   assert.equal(petitions.length,200);
   await store.pruneReleases({id:`r-${1000000000089}-abcd1234`});
   assert.equal((await readdir(join(path,'releases'))).length,20);
@@ -87,7 +87,7 @@ test('an existing invalid save without a usable fallback is never replaced by a 
   assert.equal(await readFile(join(path,'save.json'),'utf8'),'null');
 });
 
-test('slow save traffic coalesces to latest and an old acknowledgement preserves changed/new-witness petitions',async()=>{
+test('slow save traffic coalesces to latest and an old acknowledgement preserves changed/new-Seeker petitions',async()=>{
   let unblock;const held=new Promise(resolve=>{unblock=resolve;}),writes=[];
   const queue=createSaveQueue(async value=>{writes.push(value);if(value===0) await held;});
   const draining=queue.enqueue(0);await Promise.resolve();
@@ -99,17 +99,4 @@ test('slow save traffic coalesces to latest and an old acknowledgement preserves
   assert.equal(live.petitions[0].status,'answered');
   const other=structuredClone(snapshot);other.runId='b';acknowledgeArchive(other,snapshot);
   assert.equal(other.petitions.length,70);
-});
-
-test('shrine use survives a reload, but cancellation leaves it available',()=>{
-  const s=state();s.enemies=[];s.fires=[];s.slicks=[];
-  s.map.forEach((row,y)=>row.forEach((tile,x)=>{if(tile==='s') Object.assign(s.player,{x,y});}));
-  const ctx={ROT,...api};
-  game.act(s,{type:'interact'},ctx);const prompt=structuredClone(s.prompt);
-  game.act(s,{type:'cancel-prompt'},ctx);game.act(s,{type:'interact'},ctx);assert.ok(s.prompt);
-  game.act(s,{type:'petition',text:'Hear me.'},ctx);const turn=s.turn;
-  const loaded=game.migrate(JSON.parse(JSON.stringify(s)),api);
-  loaded.prompt=prompt;game.act(loaded,{type:'petition',text:'Again.'},ctx);
-  assert.equal(loaded.petitions.length,1);assert.equal(loaded.turn,turn);
-  game.act(loaded,{type:'interact'},ctx);assert.equal(loaded.prompt,null);
 });

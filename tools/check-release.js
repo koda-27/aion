@@ -19,7 +19,7 @@ function check(state) {
 const saveArg=process.argv.indexOf('--save');
 if(saveArg!==-1) {
   const saved=JSON.parse(await readFile(process.argv[saveArg+1],'utf8'));
-  const state=migrateWorld(mod,saved.state);check(state);
-  if(JSON.stringify(state)!==JSON.stringify(migrateWorld(mod,state))) throw new Error('Current-save migration is not idempotent');
+  const state=migrateWorld(mod,saved.state,{ROT});check(state);
+  if(JSON.stringify(state)!==JSON.stringify(migrateWorld(mod,state,{ROT}))) throw new Error('Current-save migration is not idempotent');
 } else check(mod.create({ROT,seed:19,...api}));
 console.log('Module loaded; state and migration compatible.');

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { initGame } from '../server/history.js';
 
 const source=fileURLToPath(new URL('..',import.meta.url));
-const directories=['client','game','server','shared','tests','tools'];
+const directories=['client','docs','game','server','shared','tests','tools'];
 const files=['package.json','package-lock.json','README.md','PLAY.md','.gitignore','LICENSE','THIRD_PARTY.md'];
 async function copyTree(from,to) {
   await mkdir(to,{recursive:true});
