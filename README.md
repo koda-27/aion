@@ -19,7 +19,7 @@ leave its turn running while you play, and turn your sound on.
 - You begin in an empty dark, without a form. That is not a bug.
 - The Oracle tells a few moments of your life and asks what you did. Your
   answers decide what you are, what you carry and where you find yourself.
-- Each place has one rule of its own to work out, and things worth touching.
+- A place may have rules of its own to work out, and things worth touching.
 - The Oracle watches how you play. The next place is made from it. It never
   says so.
 - If you reach the way on before the next place is written, you wait in
@@ -57,7 +57,7 @@ rather than replaying the whole conversation.
 - Startup trims release snapshots to the latest 20 plus versions pinned by saves.
 - Slow connections keep only one in-flight and one latest pending save.
 
-See [memory and recovery](docs/MEMORY.md) for retention and backup commands.
+See [memory and recovery](docs/MEMORY.md) for retention and recovery.
 
 ## What ships
 
@@ -109,15 +109,5 @@ the save, releases and optional Oracle notes; it is ignored by Git and is not
 served to the browser. Each tab shares one saved descent; only one may control it
 at a time. A stopped session resumes on the next launch. The host binds only to
 loopback. No public deployment or account is involved.
-
-## Publish a clean copy
-
-```sh
-npm run export
-```
-
-Creates `dist/aion-0.2.1/` with the current game as a fresh seed commit, the local
-host and instructions. Private saves, notes, credentials and old history are
-excluded. Your working copy is preserved. See [publishing](docs/PUBLISHING.md).
 
 MIT licensed. See `LICENSE` and `THIRD_PARTY.md`.

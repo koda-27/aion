@@ -1,31 +1,23 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, access, mkdir, writeFile, readdir, readFile } from 'node:fs/promises';
+import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { fileURLToPath } from 'node:url';
 import { createHistory, initGame, run } from '../server/history.js';
-import { exportSource } from '../tools/export.js';
 
-test('clean export has a single game seed commit and excludes private state, dependencies and old Git history',async t=>{
-  const temp=await mkdtemp(join(tmpdir(),'aion-export-'));t.after(()=>rm(temp,{recursive:true,force:true}));
-  const destination=join(temp,'release'),root=fileURLToPath(new URL('..',import.meta.url));
-  await exportSource(root,destination);await initGame(destination);
-  assert.equal(await run('git',['rev-list','--count','HEAD'],join(destination,'game')),'1');
-  assert.equal(await run('git',['tag','--list'],join(destination,'game')),'aion-seed');
-  for(const path of ['.aion','node_modules','.git','AGENTS.md']) await assert.rejects(access(join(destination,path)));
-  await access(join(destination,'PLAY.md'));
-  const service=createHistory(destination),history=await service.history();
+test('a fresh game gets one seed commit, and an existing history is left alone',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'aion-history-'));t.after(()=>rm(root,{recursive:true,force:true}));
+  const service=createHistory(root);
+  await mkdir(join(root,'game'));
+  for(const name of ['index.js','README.md','LICENSE']) await writeFile(join(root,'game',name),'seed\n');
+  await assert.rejects(service.history(),/Game history is unavailable/);
+  assert.equal((await initGame(root)).created,true);
+  assert.equal(await run('git',['rev-list','--count','HEAD'],join(root,'game')),'1');
+  assert.equal(await run('git',['tag','--list'],join(root,'game')),'aion-seed');
+  const history=await service.history();
   assert.equal(history.commits[0].subject,'Seed the dungeon');assert.equal(history.dirty,false);
   assert.equal((await service.history(30)).commits.length,0);
   await assert.rejects(service.history(-1),/Invalid history/);
-  await assert.rejects(exportSource(root,destination),/EEXIST/);
-  await mkdir(join(destination,'.aion'));
-  await writeFile(join(destination,'.aion/save.json'),'private saved world');
-  await run(process.execPath,['tools/backup.js'],destination);
-  const [backup]=await readdir(join(destination,'.aion/backups'));
-  const backupPath=join(destination,'.aion/backups',backup);
-  assert.equal(await readFile(join(backupPath,'.aion/save.json'),'utf8'),'private saved world');
-  await access(join(backupPath,'game/.git/HEAD'));
-  await assert.rejects(access(join(backupPath,'.aion/backups')));
+  assert.equal((await initGame(root)).created,false);
+  assert.equal(await run('git',['rev-list','--count','HEAD'],join(root,'game')),'1');
 });

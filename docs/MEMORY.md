@@ -63,28 +63,15 @@ Browser ES-module imports remain cached for the lifetime of a tab. Normal quit
 and reopen between sessions releases that cache; the host never reloads a player
 to ship a change. No promise of unlimited patches in one never-closed tab.
 
-## Back up and recover
-
-After stopping the server:
-
-```sh
-npm run backup -- /path/to/private-aion-backup
-```
-
-This copies host source, the evolving game's Git history, saves, checkpoints,
-archives and required releases. Dependencies, runtime credentials and existing
-manual backups are excluded. Destination must be new. Keep a copy on another
-disk for protection against disk loss. Restore the whole backup into a separate
-directory, run `npm ci`, then `npm start`; don't copy only `save.json` without its
-matching release modules. Manual backups are not automatically deleted.
+## Recover
 
 Startup validates the current save and its release. If damaged, it attempts the
 previous save, then daily checkpoints, preserves the damaged file in
 `.aion/recovery/`, and reports recovery in terminal diagnostics and `status`.
 It refuses to create a fresh world when an existing damaged save has no usable
 fallback. Checkpoints recover recent positions; they are not a reversible record
-of every turn. To choose a checkpoint manually, stop the server, back up first,
-then restore that checkpoint as `save.json` together with its referenced release.
+of every turn. To choose a checkpoint manually, stop the server, copy `.aion/`
+aside, then restore that checkpoint as `save.json` together with its referenced release.
 
 ## Resuming source changes
 

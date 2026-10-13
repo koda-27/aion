@@ -26,10 +26,10 @@ report, no score, no psychology shown. Their temper colours what they find.
    first place is) and is remembered. **The opening gives the Seeker their
    form**: draw it and set it with `k.wear`, from what they answered. Not
    even the Seeker's shape ships with the game.
-3. **A place.** One written place with **one law**: a single rule that bends
-   the fixed verbs, which the Seeker works out by playing. It has its own
-   textures, sounds and bed of ambient sound, its own things, and a few
-   choices with real consequences.
+3. **A place.** A written place with its own textures, sounds and bed of
+   ambient sound, its own things, and a few choices with real consequences.
+   It may have laws of its own: rules that bend the fixed verbs, which the
+   Seeker works out by playing.
 4. **A passage.** On leaving, one or two more tellings. They buy you time and
    give you clear answers to build on.
 5. Then the next place, written while they explored the last one.
@@ -73,12 +73,13 @@ short.
 
 ## Writing a place
 
-**One law.** Pick a single rule and commit to it: what is not watched moves;
-the floor is owed for what is taken; only stillness brings it near. It must
-be discoverable by play, stated nowhere outright, and it must change what
-the Seeker decides to do. It lasts one place, so it can be bold.
+**Laws.** A place may have rules of its own that bend the fixed verbs: what
+is not watched moves; the floor is owed for what is taken; only stillness
+brings it near. None is required: a place may have no law, one, or several.
+A law must be discoverable by play, stated nowhere outright, and it must
+change what the Seeker decides to do. It lasts one place, so it can be bold.
 
-**The law comes from the Seeker.** Take the strongest impression and make a
+**The place comes from the Seeker.** Take the strongest impression and make a
 place of it. Three ways that work:
 - *the mirror*: the place behaves the way they do;
 - *the shadow*: the place is made of what they avoided or left;
@@ -123,7 +124,7 @@ Each place draws its own world. Do not lean on the fallback art.
 - **Sounds.** Give the place its own footstep and its own sounds for what
   happens in it.
 
-Keep the art coherent with the law. Do not delay a place for polish; do not
+Keep the art coherent with the place. Do not delay a place for polish; do not
 ship one that is silent or untextured.
 
 ## Voice

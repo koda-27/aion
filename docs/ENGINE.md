@@ -174,7 +174,7 @@ answer anywhere, in any later place, with `k.chose('offering')`.
 
 ### Law
 
-All optional. This is where a place's one rule lives.
+All optional. This is where a place's own rules live, if it has any.
 
 | Hook | When |
 | --- | --- |
